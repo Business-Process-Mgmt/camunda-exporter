@@ -47,6 +47,7 @@ public class RabbitMQListenerService {
                     ExporterTask exporterTask = camundaTaskService.getTaskInformation(taskId);
                     exporterTask.setTaskState("COMPLETED");
                     exporterTask.setCompletedDate(DateUtils.convertTimesStampTODate(model.getTimestamp()));
+                    exporterTask.setCompletedByUser(exporterTask.getAssigneeUser());
                     System.out.println("exporterTask TaskId: " + exporterTask.getTaskId());
                     ExporterTask updateTask=exporterTaskService.updateTask(exporterTask.getTaskId(),exporterTask);
                 }
