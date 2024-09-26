@@ -23,11 +23,11 @@ public class CamundaTaskService {
     public  ExporterTask getTaskInformation(Long taskId) throws TaskListException, OperateException {
         ExporterTask exporterTask=new ExporterTask();
         SimpleConfig simpleConf = new SimpleConfig();
-        simpleConf.addProduct(Product.TASKLIST, new SimpleCredential("http://localhost:7082", "demo", "demo"));
+        simpleConf.addProduct(Product.TASKLIST, new SimpleCredential("http://localhost:8083", "demo", "demo"));
         Authentication auth = SimpleAuthentication.builder().withSimpleConfig(simpleConf).build();
 
         CamundaTaskListClient client = CamundaTaskListClient.builder()
-                .taskListUrl("http://localhost:7082")
+                .taskListUrl("http://localhost:8083")
                 .authentication(auth)
                 .cookieExpiration(Duration.ofSeconds(5))
                 .build();

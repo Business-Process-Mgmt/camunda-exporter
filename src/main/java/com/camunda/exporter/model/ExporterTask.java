@@ -56,7 +56,7 @@ public class ExporterTask {
     private Long childProcessInstanceKey;
 
     @Column(name = "process_id")
-    private Long processId;
+    private String processId;
 
     @Column(name = "task_unique_id")
     private String taskUniqueId;
