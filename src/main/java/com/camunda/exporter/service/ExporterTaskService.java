@@ -5,6 +5,7 @@ import com.camunda.exporter.repository.ExporterTaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,7 +52,28 @@ public class ExporterTaskService {
         // Update other fields as needed
         return taskRepository.save(task);
     }
-
+    public boolean updateAssignee(Long taskId, String newAssignee) {
+        Optional<ExporterTask> taskOptional = taskRepository.findById(taskId);
+        if (taskOptional.isPresent()) {
+            ExporterTask task = taskOptional.get();
+            task.setAssigneeUser(newAssignee); // Update the assignee
+            taskRepository.save(task); // Save the updated task
+            return true; // Update was successful
+        }
+        return false; // Task not found
+    }
+    public boolean markTaskAsCompleted(Long taskId, String completedByUser, LocalDateTime completedDateTime) {
+        Optional<ExporterTask> taskOptional = taskRepository.findById(taskId);
+        if (taskOptional.isPresent()) {
+            ExporterTask task = taskOptional.get();
+            task.setTaskState("COMPLETED"); // Set the task state to completed
+            task.setCompletedByUser(completedByUser); // Update the completed by user
+            task.setCompletedDate(completedDateTime); // Set the completed date
+            taskRepository.save(task); // Save the updated task
+            return true; // Update was successful
+        }
+        return false; // Task not found
+    }
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
     }

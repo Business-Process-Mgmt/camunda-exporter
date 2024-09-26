@@ -42,25 +42,12 @@ public class RabbitMQListenerService {
                 if(intent!=null && intent.equals("CREATED")) {
                     ExporterTask exporterTask = new ExporterTask();
                     taskMapping(exporterTask,userTask);
-                    /*Long taskId = userTask.getKey();
-                    System.out.println("taskId: " + taskId);
-                    exporterTask.setProcessId(model.getValue().getBpmnProcessId());
-                    Object customHeaders=model.getValue().getCustomHeaders();
-                    System.out.println("exporterTask customHeaders: " + customHeaders);
-                    String validJson = convertToValidJson(customHeaders.toString());
-                    System.out.println("exporterTask validJson: " + validJson);
-                     System.out.println("exporterTask TaskId: " + exporterTask.getTaskId());*/
                     exporterTaskService.createTask(exporterTask);
+                } else if(intent!=null && intent.equals("ASSIGNED")) {
+                    boolean updated = exporterTaskService.updateAssignee(userTask.getValue().getUserTaskKey(), userTask.getValue().getAssignee());
+
                 } else if(intent!=null && intent.equals("COMPLETED")) {
-                    /*Long taskId = model.getKey();
-                    System.out.println("taskId: " + taskId);
-                    ExporterTask exporterTask = new ExporterTask();
-                    exporterTask.setTaskState("COMPLETED");
-                    exporterTask.setCompletedDate(DateUtils.convertTimesStampTODate(model.getTimestamp()));
-                    exporterTask.setCompletedByUser(exporterTask.getAssigneeUser());
-                    System.out.println("exporterTask TaskId: " + exporterTask.getTaskId());
-                    ExporterTask updateTask=exporterTaskService.updateTask(exporterTask.getTaskId(),exporterTask);
-               */
+                    boolean iscompletedTask = exporterTaskService.markTaskAsCompleted(userTask.getValue().getUserTaskKey(),userTask.getValue().getAssignee(),DateUtils.convertTimesStampTODate(userTask.getTimestamp()));
                 }
             }
         } catch (JsonProcessingException e) {
@@ -78,7 +65,9 @@ public class RabbitMQListenerService {
         exporterTask.setTaskState(Constants.TASK_STATE_CREATED);
         exporterTask.setAssigneeUser(userTask.getValue().getAssignee());
         exporterTask.setCandidateGroups(userTask.getValue().getCandidateGroupsList().toString());
-        exporterTask.setDueDate(LocalDateTime.parse(userTask.getValue().getDueDate().replace("Z", ""), DateTimeFormatter.ISO_DATE_TIME));
+        if(userTask.getValue().getDueDate()!=null && !userTask.getValue().getDueDate().equals("")) {
+            exporterTask.setDueDate(LocalDateTime.parse(userTask.getValue().getDueDate().replace("Z", ""), DateTimeFormatter.ISO_DATE_TIME));
+        }
         exporterTask.setProcessId(userTask.getValue().getBpmnProcessId());
         exporterTask.setCreatedDate(DateUtils.getCurrentDateTimeStamp());
         exporterTask.setCreatedBy("System");
