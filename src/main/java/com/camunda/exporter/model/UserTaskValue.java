@@ -30,4 +30,5 @@ public class UserTaskValue {
     private long processInstanceKey;
     private String dueDate; // ISO 8601 date string
     private int formKey;
+    private String bpmnElementType;
 }

@@ -82,6 +82,7 @@
 			<artifactId>java-client-operate</artifactId>
 			<version>8.3.7</version>
 		</dependency>
+
 	</dependencies>
 
 	<build>

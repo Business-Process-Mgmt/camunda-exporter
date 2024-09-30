@@ -25,6 +25,11 @@ public class RabbitMQListenerService {
     ExporterTaskService exporterTaskService;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    CacheService cacheService;
+
+
     @RabbitListener(queues = "camundaQueue",exclusive = false)
     public void receiveMessage(String message) {
         System.out.println("Received Message: " + message);
@@ -35,13 +40,27 @@ public class RabbitMQListenerService {
 
             String valueType=userTask.getValueType();
             String intent=userTask.getIntent();
+            String bpmnElementType=userTask.getValue().getBpmnElementType();
 
-
+            if(valueType!=null && valueType.equals("PROCESS_INSTANCE")) {
+                if (bpmnElementType!=null && bpmnElementType.equals("CALL_ACTIVITY")) {
+                    String processInstanceKey=String.valueOf(userTask.getValue().getProcessInstanceKey());
+                    System.out.println("processInstanceKey::"+processInstanceKey);
+                    cacheService.cacheValue("PROCESS_INSTANCE_KEY", processInstanceKey);
+                }
+            }
             if(valueType!=null && valueType.equals("USER_TASK")) {
                 System.out.println("intent::"+intent);
                 if(intent!=null && intent.equals("CREATED")) {
+                    String processInstanceKey=cacheService.getCachedValue("PROCESS_INSTANCE_KEY");
+                    System.out.println("processInstanceKey1::"+processInstanceKey);
                     ExporterTask exporterTask = new ExporterTask();
                     taskMapping(exporterTask,userTask);
+                    if(processInstanceKey!=null && !processInstanceKey.equals("")) {
+                        exporterTask.setChildProcessInstanceKey(exporterTask.getProcessInstanceKey());
+                        exporterTask.setProcessInstanceKey(Long.valueOf(processInstanceKey));
+                        cacheService.cacheValue("PROCESS_INSTANCE_KEY", "");
+                    }
                     exporterTaskService.createTask(exporterTask);
                 } else if(intent!=null && intent.equals("ASSIGNED")) {
                     boolean updated = exporterTaskService.updateAssignee(userTask.getValue().getUserTaskKey(), userTask.getValue().getAssignee());
