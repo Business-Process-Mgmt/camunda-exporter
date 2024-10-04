@@ -41,25 +41,36 @@ public class RabbitMQListenerService {
             String valueType=userTask.getValueType();
             String intent=userTask.getIntent();
             String bpmnElementType=userTask.getValue().getBpmnElementType();
-
+            boolean isCallActivity= Boolean.parseBoolean(cacheService.getCachedValue("isCallActivity"));
+            System.out.println("isCallActivity::"+isCallActivity);
             if(valueType!=null && valueType.equals("PROCESS_INSTANCE")) {
                 if (bpmnElementType!=null && bpmnElementType.equals("CALL_ACTIVITY")) {
                     String processInstanceKey=String.valueOf(userTask.getValue().getProcessInstanceKey());
                     System.out.println("processInstanceKey::"+processInstanceKey);
                     cacheService.cacheValue("PROCESS_INSTANCE_KEY", processInstanceKey);
+                    cacheService.cacheValue("isCallActivity", "true");
+
+                }
+                if(isCallActivity){
+                    String processInstanceKey=cacheService.getCachedValue("PROCESS_INSTANCE_KEY");
+                    String childProcessInstanceKey=String.valueOf(userTask.getValue().getProcessInstanceKey());
+                    cacheService.cacheValue(childProcessInstanceKey, processInstanceKey);
                 }
             }
             if(valueType!=null && valueType.equals("USER_TASK")) {
                 System.out.println("intent::"+intent);
                 if(intent!=null && intent.equals("CREATED")) {
-                    String processInstanceKey=cacheService.getCachedValue("PROCESS_INSTANCE_KEY");
-                    System.out.println("processInstanceKey1::"+processInstanceKey);
                     ExporterTask exporterTask = new ExporterTask();
                     taskMapping(exporterTask,userTask);
-                    if(processInstanceKey!=null && !processInstanceKey.equals("")) {
-                        exporterTask.setChildProcessInstanceKey(exporterTask.getProcessInstanceKey());
-                        exporterTask.setProcessInstanceKey(Long.valueOf(processInstanceKey));
-                        cacheService.cacheValue("PROCESS_INSTANCE_KEY", "");
+                    if(isCallActivity) {
+                        String processInstanceKey=String.valueOf(userTask.getValue().getProcessInstanceKey());
+                        System.out.println("processInstanceKey::"+processInstanceKey);
+                        String childProcessInstanceKey=cacheService.getCachedValue(processInstanceKey);
+                        System.out.println("childProcessInstanceKey::"+childProcessInstanceKey);
+                        exporterTask.setChildProcessInstanceKey(Long.valueOf(processInstanceKey));
+                        exporterTask.setProcessInstanceKey(Long.valueOf(childProcessInstanceKey));
+
+                        cacheService.cacheValue("isCallActivity", "false");
                     }
                     exporterTaskService.createTask(exporterTask);
                 } else if(intent!=null && intent.equals("ASSIGNED")) {
